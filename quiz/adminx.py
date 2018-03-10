@@ -108,10 +108,11 @@ class GameAdmin:
     inlines = [QuestionInline, ]
 
     def save_models(self):
+        now = datetime.now()
         obj = self.new_obj
         obj.save()
         if obj.is_active:
-            start_game.apply_async((obj.id,), eta=obj.start_time)
+            start_game.apply_async((obj.id,), eta=now)
 
 
 class GameResultAdmin:
