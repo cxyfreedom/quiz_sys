@@ -37,7 +37,7 @@ def format_game(game):
         quiz.append(info)
 
     game_info = {
-        "start_time": int((game.start_time + timedelta(hours=8)).timestamp()),
+        "start_time": int(game.start_time.timestamp()),
         "interval": game.each_time,
         "game_id": game.id,
         "player_amount": 0,
