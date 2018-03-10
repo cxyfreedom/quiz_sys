@@ -63,6 +63,8 @@ class GameAdminForm(forms.ModelForm):
         now = datetime.now()
         tz = pytz.timezone('Asia/Shanghai')
         now = tz.localize(now)
+        if cur_start < now or cur_end < now:
+            raise forms.ValidationError('游戏开始和结束时间必须大于当前时间')
         if (now - cur_start).seconds < (60 * 5):
             raise forms.ValidationError('游戏开始时间必须与当前时间间隔至少 5 分钟')
 
