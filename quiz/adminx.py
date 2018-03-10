@@ -67,7 +67,7 @@ class GameAdminForm(forms.ModelForm):
         now = tz.localize(now)
         if cur_start < now or cur_end < now:
             raise forms.ValidationError('游戏开始和结束时间必须大于当前时间')
-        if (now - cur_start).seconds < 5:
+        if (now.minute - cur_start.minute) < 5:
             raise forms.ValidationError('游戏开始时间必须与当前时间间隔至少 5 分钟')
 
         # 获取数据库中存在的活动时间
