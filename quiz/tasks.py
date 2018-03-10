@@ -69,16 +69,16 @@ def start_game(game_id):
         logger.error('游戏[{}]未激活'.format(game.title))
 
 
-@celery_app.task(bind=True)
-def save_game_result(self, game_id):
+@celery_app.task()
+def save_game_result(game_id):
     user_key = "game:{}".format(game_id)
     result_key = "gameResult:{}".format(game_id)
-    user_info = self.r.hvals(user_key)
+    user_info = r.hvals(user_key)
     insert_data = []
 
     try:
         with transaction.atomic():
-            result = self.r.get(result_key)
+            result = r.get(result_key)
             if result:
                 result = json.loads(result)
                 game = Game.objects.get(pk=game_id)
@@ -89,10 +89,10 @@ def save_game_result(self, game_id):
 
             for u in user_info:
                 user = json.loads(u.decode('utf-8'))
-                item = GameResult(openid=user['openid'], nickname=user['nickname'], sex=user['sex'],
+                item = GameResult(openid=user['openid'], nickname=user['name'], sex=user['sex'],
                                   nums=len([i for i in user['answers'] if i['result'] == 1]),
                                   join_time=datetime.fromtimestamp(user.get('enter_timestamp', 0)), game_id=game_id)
                 insert_data.append(item)
                 GameResult.objects.bulk_create(insert_data)
     except Exception as e:
-        self.retry(exc=e, countdown=5, max_retries=3)
+        logger.error(e)

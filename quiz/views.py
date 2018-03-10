@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 from django.http.response import JsonResponse
 from django.views.generic.base import View
 
@@ -10,6 +11,6 @@ class ResultView(View):
     """存储游戏结果"""
 
     def post(self, request):
-        game_id = request.POST['game_id']
+        game_id = json.loads(request.body).get('game_id')
         save_game_result.apply_async((game_id,))
         return JsonResponse({'code': 0, 'msg': 'success'})
