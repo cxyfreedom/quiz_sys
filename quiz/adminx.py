@@ -24,7 +24,7 @@ class GlobalSettings:
 
 class ChoiceInline:
     model = Choice
-    extra = 2  # 默认显示个数
+    extra = 0
     style = 'accordion'
 
 
@@ -100,7 +100,7 @@ class GameAdmin:
 
 
 class GameResultAdmin:
-    list_display = ['nickname', 'sex', 'rank', 'nums', 'join_time', 'game']  # 设置要显示在列表中的字段
+    list_display = ['nickname', 'sex', 'nums', 'join_time', 'game']  # 设置要显示在列表中的字段
     search_fields = ['game__title']  # 搜索字段
     list_filter = ['game']  # 过滤器
     ordering = []  # 设置默认排序字段，负号表示降序排序
