@@ -75,6 +75,15 @@ class GameAdminForm(forms.ModelForm):
             if max(start_time, cur_start) < min(start_time + timedelta(seconds=end_time), cur_end):
                 raise forms.ValidationError('当前游戏时间与其他游戏时间有冲突！')
 
+        question_num = int(self.data['gamequestion_set-TOTAL_FORMS'])
+        if question_num <= 0 or int(self.data["rounds"]) != question_num:
+            raise forms.ValidationError('回合数和问题数量需相等并且至少一个回合！')
+
+        for q in range(question_num):
+            title = "gamequestion_set-{}-question".format(q)
+            if not self.data[title]:
+                raise forms.ValidationError("题目为必填项！")
+
 
 class QuestionAdmin:
     form = QuestionAdminForm
