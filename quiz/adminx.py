@@ -58,6 +58,8 @@ class GameAdminForm(forms.ModelForm):
         # 校验游戏是否已经结束
         if Game.objects.filter(Q(id=cur_id) & Q(status=Game.OVER)):
             raise forms.ValidationError('当前游戏已结束，无法修改相关数据！')
+        elif Game.objects.filter(Q(id=cur_id) & Q(status=Game.PROCESSING)):
+            raise forms.ValidationError('当前游戏正在进行中，无法修改相关数据！')
 
         # 校验当前时间和游戏开始时间是否大于 5 分钟
         now = datetime.now()
@@ -65,7 +67,7 @@ class GameAdminForm(forms.ModelForm):
         now = tz.localize(now)
         if cur_start < now or cur_end < now:
             raise forms.ValidationError('游戏开始和结束时间必须大于当前时间')
-        if (now - cur_start).seconds < (60 * 5):
+        if (now - cur_start).seconds < 5:
             raise forms.ValidationError('游戏开始时间必须与当前时间间隔至少 5 分钟')
 
         # 获取数据库中存在的活动时间
@@ -102,6 +104,7 @@ class GameAdmin:
                     'modified_time']
     search_fields = ['title']
     list_filter = ['each_time', 'start_time', 'rounds', 'is_active', 'status', 'create_time']
+    readonly_fields = ['status']
     inlines = [QuestionInline, ]
 
     def save_models(self):

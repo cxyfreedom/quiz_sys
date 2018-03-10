@@ -51,7 +51,7 @@ class Game(models.Model):
     rounds = models.PositiveIntegerField(verbose_name="回合数量")
     questions = models.ManyToManyField(Question, through="GameQuestion")
     is_active = models.BooleanField(default=False, verbose_name="是否激活")
-    status = models.IntegerField(choices=GAME_STATUS, default=CREATED, editable=False, verbose_name="游戏状态")
+    status = models.IntegerField(choices=GAME_STATUS, default=CREATED, verbose_name="游戏状态")
     player_num = models.IntegerField(default=0, editable=False, verbose_name="玩家人数")
     win_num = models.IntegerField(default=0, editable=False, verbose_name="获胜人数")
     create_time = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="创建时间")
