@@ -52,6 +52,8 @@ class Game(models.Model):
     questions = models.ManyToManyField(Question, through="GameQuestion")
     is_active = models.BooleanField(default=False, verbose_name="是否激活")
     status = models.IntegerField(choices=GAME_STATUS, default=CREATED, editable=False, verbose_name="游戏状态")
+    player_num = models.IntegerField(default=0, editable=False, verbose_name="玩家人数")
+    win_num = models.IntegerField(default=0, editable=False, verbose_name="获胜人数")
     create_time = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="创建时间")
     modified_time = models.DateTimeField(auto_now=True, editable=False, verbose_name="修改时间")
 
@@ -89,7 +91,7 @@ class GameResult(models.Model):
     openid = models.CharField(max_length=200, verbose_name="用户的唯一标识")
     nickname = models.CharField(max_length=128, verbose_name="用户昵称")
     sex = models.IntegerField(choices=SEX_ITEMS, verbose_name="性别")
-    rank = models.IntegerField(verbose_name="游戏排名")
+    # rank = models.IntegerField(verbose_name="游戏排名")
     nums = models.IntegerField(default=0, verbose_name="答对题数")
     join_time = models.DateTimeField(verbose_name="加入时间")
     game = models.ForeignKey(Game, related_name="games", verbose_name="游戏")
@@ -99,4 +101,4 @@ class GameResult(models.Model):
 
     class Meta:
         db_table = "game_result"
-        verbose_name = verbose_name_plural = "游戏排名"
+        verbose_name = verbose_name_plural = "游戏结果"

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import json
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from celery.utils.log import get_task_logger
+from django.db import transaction
 
-from quiz.models import Game, Choice
+from quiz.models import Game, Choice, GameResult
 from quiz_sys import celery_app
 from quiz_sys.redis import r
 
@@ -36,10 +37,12 @@ def format_game(game):
         quiz.append(info)
 
     game_info = {
-        "start_time": (int((game.start_time + timedelta(hours=8)).timestamp())) * 1000,
+        "start_time": int((game.start_time + timedelta(hours=8)).timestamp()),
         "interval": game.each_time,
         "game_id": game.id,
-        "quiz": quiz
+        "player_amount": 0,
+        "remainders": 0,
+        "quiz": quiz,
     }
     print(game_info)
     return json.dumps(game_info)
@@ -64,3 +67,32 @@ def start_game(game_id):
             logger.info('游戏[{}]状态错误'.format(game.title))
     else:
         logger.error('游戏[{}]未激活'.format(game.title))
+
+
+@celery_app.task(bind=True)
+def save_game_result(self, game_id):
+    user_key = "game:{}".format(game_id)
+    result_key = "gameResult:{}".format(game_id)
+    user_info = self.r.hvals(user_key)
+    insert_data = []
+
+    try:
+        with transaction.atomic():
+            result = self.r.get(result_key)
+            if result:
+                result = json.loads(result)
+                game = Game.objects.get(pk=game_id)
+                game.status = Game.OVER
+                game.player_num = result.get('player_amount', 0)
+                game.win_num = result.get('winner_amount', 0)
+                game.save(update_fields=['status', 'player_num', 'win_num'])
+
+            for u in user_info:
+                user = json.loads(u.decode('utf-8'))
+                item = GameResult(openid=user['openid'], nickname=user['nickname'], sex=user['sex'],
+                                  nums=len([i for i in user['answers'] if i['result'] == 1]),
+                                  join_time=datetime.fromtimestamp(user.get('enter_timestamp', 0)), game_id=game_id)
+                insert_data.append(item)
+                GameResult.objects.bulk_create(insert_data)
+    except Exception as e:
+        self.retry(exc=e, countdown=5, max_retries=3)

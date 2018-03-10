@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta, datetime
 
+import pytz
 import xadmin
 from xadmin import views
 from django import forms
 from django.db.models import F, Q, IntegerField, ExpressionWrapper
 
-from .models import Question, Choice, Game, GameQuestion, GameResult
-from .tasks import start_game
+from quiz.models import Question, Choice, Game, GameQuestion, GameResult
+from quiz.tasks import start_game
 
 
 class BaseSetting:
@@ -60,7 +61,9 @@ class GameAdminForm(forms.ModelForm):
 
         # 校验当前时间和游戏开始时间是否大于 5 分钟
         now = datetime.now()
-        if cur_start < now or (now - cur_start).seconds < 60 * 5:
+        tz = pytz.timezone('Asia/Shanghai')
+        now = tz.localize(now)
+        if (now - cur_start).seconds < (60 * 5):
             raise forms.ValidationError('游戏开始时间必须与当前时间间隔至少 5 分钟')
 
         # 获取数据库中存在的活动时间
@@ -93,15 +96,15 @@ class GameAdmin:
     def save_models(self):
         obj = self.new_obj
         obj.save()
-        start_game.apply_async((obj.id,), eta=obj.start_time + timedelta(minutes=5))
+        start_game.apply_async((obj.id,), eta=obj.start_time)
 
 
 class GameResultAdmin:
-    list_display = ['nickname', 'sex', 'rank', 'nums', 'game']  # 设置要显示在列表中的字段
+    list_display = ['nickname', 'sex', 'rank', 'nums', 'join_time', 'game']  # 设置要显示在列表中的字段
     search_fields = ['game__title']  # 搜索字段
     list_filter = ['game']  # 过滤器
     ordering = []  # 设置默认排序字段，负号表示降序排序
-    readonly_fields = ['openid', 'nickname', 'sex', 'rank', 'nums', 'join_time', 'game']
+    readonly_fields = ['openid', 'nickname', 'sex', 'nums', 'join_time', 'game']
 
 
 xadmin.site.register(Question, QuestionAdmin)
