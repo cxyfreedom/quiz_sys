@@ -67,8 +67,8 @@ class GameAdminForm(forms.ModelForm):
         now = tz.localize(now)
         if cur_start < now or cur_end < now:
             raise forms.ValidationError('游戏开始和结束时间必须大于当前时间')
-        if (cur_start - now).seconds < 5 * 60:
-            raise forms.ValidationError('游戏开始时间必须与当前时间间隔至少 5 分钟')
+        if (cur_start - now).seconds < 30:
+            raise forms.ValidationError('游戏开始时间必须与当前时间间隔至少 30 秒')
 
         # 获取数据库中存在的活动时间
         games = Game.objects.filter(~Q(id=cur_id), ~Q(status=Game.OVER)).annotate(
@@ -111,7 +111,7 @@ class GameAdmin:
         obj = self.new_obj
         obj.save()
         if obj.is_active:
-            start_game.apply_async((obj.id,), eta=obj.start_time-timedelta(minutes=3))
+            start_game.apply_async((obj.id,), eta=obj.start_time-timedelta(seconds=30))
 
 
 class GameResultAdmin:
