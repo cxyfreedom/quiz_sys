@@ -61,14 +61,14 @@ class GameAdminForm(forms.ModelForm):
         elif Game.objects.filter(Q(id=cur_id) & Q(status=Game.PROCESSING)):
             raise forms.ValidationError('当前游戏正在进行中，无法修改相关数据！')
 
-        # 校验当前时间和游戏开始时间是否大于 5 分钟
+        # 校验当前时间和游戏开始时间是否大于 2 分钟
         now = datetime.now()
         tz = pytz.timezone('Asia/Shanghai')
         now = tz.localize(now)
         if cur_start < now or cur_end < now:
             raise forms.ValidationError('游戏开始和结束时间必须大于当前时间')
-        if (cur_start - now).seconds < 30:
-            raise forms.ValidationError('游戏开始时间必须与当前时间间隔至少 30 秒')
+        if (cur_start - now).seconds < 2 * 60:
+            raise forms.ValidationError('游戏开始时间必须与当前时间间隔至少 2 分钟')
 
         # 获取数据库中存在的活动时间
         games = Game.objects.filter(~Q(id=cur_id), ~Q(status=Game.OVER)).annotate(
@@ -111,7 +111,7 @@ class GameAdmin:
         obj = self.new_obj
         obj.save()
         if obj.is_active:
-            start_game.apply_async((obj.id,), eta=obj.start_time-timedelta(seconds=30))
+            start_game.apply_async((obj.id,), eta=obj.start_time-timedelta(minutes=1))
 
 
 class GameResultAdmin:
