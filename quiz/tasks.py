@@ -39,7 +39,7 @@ def format_game(game):
     game_info = {
         "start_time": int(game.start_time.timestamp()),
         "interval": game.each_time,
-        "game_id": game.id,
+        "id": game.id,
         "player_amount": 0,
         "remainders": 0,
         "quiz": quiz,
