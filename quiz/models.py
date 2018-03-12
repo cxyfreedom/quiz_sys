@@ -22,7 +22,7 @@ class Choice(models.Model):
     """问题选项"""
     question = models.ForeignKey(Question, related_name="choices")
     description = models.CharField(max_length=50, verbose_name="选项内容")
-    index = models.PositiveIntegerField(default=1, verbose_name="选项顺序")
+    index = models.IntegerField(default=1, verbose_name="选项顺序")
     is_correct = models.BooleanField(verbose_name="是否是正确答案")
     create_time = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="创建时间")
     modified_time = models.DateTimeField(auto_now=True, editable=False, verbose_name="修改时间")
@@ -46,6 +46,7 @@ class Game(models.Model):
         (OVER, '已结束'),
     ]
     title = models.CharField(max_length=50, verbose_name="游戏名称")
+    reward = models.IntegerField(default=0, verbose_name="赏金（元）")
     each_time = models.IntegerField(verbose_name="单题答题时间（秒）")
     start_time = models.DateTimeField(verbose_name="轮次开始时间")
     rounds = models.PositiveIntegerField(verbose_name="回合数量")
@@ -71,7 +72,7 @@ class Game(models.Model):
 class GameQuestion(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="题目")
     game = models.ForeignKey(Game, on_delete=models.CASCADE, verbose_name="游戏")
-    index = models.PositiveIntegerField(default=1, verbose_name="问题顺序")
+    index = models.IntegerField(default=1, verbose_name="问题顺序")
 
     def __str__(self):
         return '{} - {}'.format(self.question.title, self.index)
@@ -88,11 +89,12 @@ class GameResult(models.Model):
         (0, '未知'),
     ]
 
-    openid = models.CharField(max_length=200, verbose_name="用户的唯一标识")
+    openid = models.CharField(max_length=200, verbose_name="openid")
     nickname = models.CharField(max_length=128, verbose_name="用户昵称")
     sex = models.IntegerField(choices=SEX_ITEMS, verbose_name="性别")
     # rank = models.IntegerField(verbose_name="游戏排名")
     nums = models.IntegerField(default=0, verbose_name="答对题数")
+    reward = models.IntegerField(default=0, verbose_name="赏金（元）")
     join_time = models.DateTimeField(verbose_name="加入时间")
     game = models.ForeignKey(Game, related_name="games", verbose_name="游戏")
 

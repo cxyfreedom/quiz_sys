@@ -54,12 +54,18 @@ class GameAdminForm(forms.ModelForm):
         play_time = self.cleaned_data.get('each_time') * self.cleaned_data.get('rounds')
         cur_start = self.cleaned_data.get('start_time')
         cur_end = self.cleaned_data.get('start_time') + timedelta(seconds=play_time)
+        reward = self.cleaned_data.get('reward')
 
         # 校验游戏是否已经结束
         if Game.objects.filter(Q(id=cur_id) & Q(status=Game.OVER)):
             raise forms.ValidationError('当前游戏已结束，无法修改相关数据！')
         elif Game.objects.filter(Q(id=cur_id) & Q(status=Game.PROCESSING)):
             raise forms.ValidationError('当前游戏正在进行中，无法修改相关数据！')
+
+        # 赏金不小于0元
+        print(reward)
+        if reward < 0:
+            raise forms.ValidationError('赏金不能低于0元！')
 
         # 校验当前时间和游戏开始时间是否大于 2 分钟
         now = datetime.now()
@@ -100,7 +106,7 @@ class QuestionAdmin:
 
 class GameAdmin:
     form = GameAdminForm
-    list_display = ['title', 'each_time', 'start_time', 'rounds', 'is_active', 'status', 'create_time',
+    list_display = ['title', 'reward', 'each_time', 'start_time', 'rounds', 'is_active', 'status', 'create_time',
                     'modified_time']
     search_fields = ['title']
     list_filter = ['each_time', 'start_time', 'rounds', 'is_active', 'status', 'create_time']
@@ -115,11 +121,11 @@ class GameAdmin:
 
 
 class GameResultAdmin:
-    list_display = ['nickname', 'sex', 'nums', 'join_time', 'game']  # 设置要显示在列表中的字段
-    search_fields = ['game__title']  # 搜索字段
+    list_display = ['openid', 'nickname', 'sex', 'nums', 'join_time', 'reward', 'game']  # 设置要显示在列表中的字段
+    search_fields = ['game__title', 'openid']  # 搜索字段
     list_filter = ['game']  # 过滤器
     ordering = []  # 设置默认排序字段，负号表示降序排序
-    readonly_fields = ['openid', 'nickname', 'sex', 'nums', 'join_time', 'game']
+    readonly_fields = ['openid', 'nickname', 'sex', 'nums', 'join_time', 'reward', 'game']
 
 
 xadmin.site.register(Question, QuestionAdmin)

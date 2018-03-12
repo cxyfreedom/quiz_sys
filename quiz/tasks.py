@@ -81,16 +81,23 @@ def save_game_result(game_id):
             result = r.get(result_key)
             if result:
                 result = json.loads(result)
+                winners = json.loads(result.get('winners'))
+                all_user = [user['openid'] for user in winners]
+                all_reward = result.get('reward')
                 game = Game.objects.get(pk=game_id)
                 game.status = Game.OVER
                 game.player_num = result.get('player_amount', 0)
                 game.win_num = result.get('winner_amount', 0)
                 game.save(update_fields=['status', 'player_num', 'win_num'])
+            else:
+                all_user = []
+                all_reward = 0
 
             for u in user_info:
                 user = json.loads(u.decode('utf-8'))
+                reward = round(all_reward / len(user_info), 2) if user['openid'] in all_user else 0
                 item = GameResult(openid=user['openid'], nickname=user['name'], sex=user['sex'],
-                                  nums=len([i for i in user['answers'] if i['result'] == 1]),
+                                  nums=len([i for i in user['answers'] if i['result'] == 1]), reward=reward,
                                   join_time=datetime.fromtimestamp(user.get('enter_timestamp', 0)), game_id=game_id)
                 insert_data.append(item)
                 GameResult.objects.bulk_create(insert_data)
