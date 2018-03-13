@@ -82,7 +82,7 @@ def save_game_result(game_id):
             result = r.get(result_key)
             if result:
                 result = json.loads(result)
-                winners = json.loads(result.get('winners'))
+                winners = result.get('winners')
                 all_user = [user['openid'] for user in winners]
                 game = Game.objects.get(pk=game_id)
                 all_reward = game.reward
