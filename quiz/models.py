@@ -58,8 +58,6 @@ class Game(models.Model):
     create_time = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="创建时间")
     modified_time = models.DateTimeField(auto_now=True, editable=False, verbose_name="修改时间")
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="管理员")
-
     def __str__(self):
         return '{}'.format(self.title)
 
