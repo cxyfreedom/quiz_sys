@@ -82,7 +82,7 @@ def save_game_result(game_id):
             result = r.get(result_key)
             if result:
                 result = json.loads(result)
-                winners = result.get('winners')
+                winners = result.get('winners', 0)
                 all_user = [user['openid'] for user in winners]
                 game = Game.objects.get(pk=game_id)
                 all_reward = game.reward
@@ -93,14 +93,18 @@ def save_game_result(game_id):
             else:
                 all_user = []
                 all_reward = 0
+                winners = 0
 
             for u in user_info:
                 user = json.loads(u.decode('utf-8'))
-                reward = round(all_reward / len(user_info), 2) if user['openid'] in all_user else 0
+                if winners:
+                    reward = round(all_reward / winners, 2) if user['openid'] in all_user else 0
+                else:
+                    reward = 0
                 item = GameResult(openid=user['openid'], nickname=user['name'], sex=user['sex'],
                                   nums=len([i for i in user['answers'] if i['result'] == 1]), reward=reward,
                                   join_time=datetime.fromtimestamp(user.get('enter_timestamp', 0)), game_id=game_id)
                 insert_data.append(item)
-                GameResult.objects.bulk_create(insert_data)
+            GameResult.objects.bulk_create(insert_data)
     except Exception as e:
         logger.error(e)
