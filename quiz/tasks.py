@@ -42,6 +42,7 @@ def format_game(game):
         "id": game.id,
         "player_amount": 0,
         "remainders": 0,
+        "reward": game.reward,
         "quiz": quiz,
     }
     print(game_info)
@@ -83,8 +84,8 @@ def save_game_result(game_id):
                 result = json.loads(result)
                 winners = json.loads(result.get('winners'))
                 all_user = [user['openid'] for user in winners]
-                all_reward = result.get('reward')
                 game = Game.objects.get(pk=game_id)
+                all_reward = game.reward
                 game.status = Game.OVER
                 game.player_num = result.get('player_amount', 0)
                 game.win_num = result.get('winner_amount', 0)
