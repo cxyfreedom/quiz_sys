@@ -50,16 +50,32 @@ def format_game(game):
 
 
 @celery_app.task()
+def update_game_status(game_id):
+    game = Game.objects.get(pk=game_id)
+    if game.is_active:
+        if game.status == Game.CREATED:
+            logger.info('更新游戏[{}]为正在进行中'.format(game.title))
+            game.status = Game.PROCESSING
+            game.save(update_fields=['status'])
+        elif game.status == Game.PROCESSING:
+            logger.info('游戏[{}]正在进行中'.format(game.title))
+        elif game.status == Game.OVER:
+            logger.info('游戏[{}]已结束'.format(game.title))
+        else:
+            logger.info('游戏[{}]状态错误'.format(game.title))
+    else:
+        logger.error('游戏[{}]未激活'.format(game.title))
+
+
+@celery_app.task()
 def start_game(game_id):
     game = Game.objects.get(pk=game_id)
     if game.is_active:
         if game.status == Game.CREATED:
-            logger.info("游戏[{}]开始".format(game.title))
-            game.status = Game.PROCESSING
-            game.save(update_fields=['status'])
             # 将数据存储到redis
             game_info = format_game(game)
             r.set("game", game_info)
+            r.set("gameFlag:{}".format(game.id), 0)
         elif game.status == Game.PROCESSING:
             logger.info('游戏[{}]正在进行中'.format(game.title))
         elif game.status == Game.OVER:
@@ -74,8 +90,12 @@ def start_game(game_id):
 def save_game_result(game_id):
     user_key = "game:{}".format(game_id)
     result_key = "gameResult:{}".format(game_id)
+    game_flag = "gameFlag:{}".format(game_id)
     user_info = r.hvals(user_key)
     insert_data = []
+
+    if r.get(game_flag) == 0:
+        return
 
     try:
         with transaction.atomic():
@@ -108,5 +128,6 @@ def save_game_result(game_id):
             logger.info("winners:{}".format(len(winners)))
             logger.info(insert_data)
             GameResult.objects.bulk_create(insert_data)
+            r.set(game_flag, 1)
     except Exception as e:
         logger.error(e)

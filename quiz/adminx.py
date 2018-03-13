@@ -8,7 +8,7 @@ from django import forms
 from django.db.models import F, Q, IntegerField, ExpressionWrapper
 
 from quiz.models import Question, Choice, Game, GameQuestion, GameResult
-from quiz.tasks import start_game
+from quiz.tasks import start_game, update_game_status
 
 
 class BaseSetting:
@@ -63,7 +63,6 @@ class GameAdminForm(forms.ModelForm):
             raise forms.ValidationError('当前游戏正在进行中，无法修改相关数据！')
 
         # 赏金不小于0元
-        print(reward)
         if reward < 0:
             raise forms.ValidationError('赏金不能低于0元！')
 
@@ -80,10 +79,13 @@ class GameAdminForm(forms.ModelForm):
         games = Game.objects.filter(~Q(id=cur_id), ~Q(status=Game.OVER)).annotate(
             end_time=ExpressionWrapper(F('each_time') * F('rounds'),
                                        output_field=IntegerField())).values_list('start_time',
-                                                                                 'end_time')
-        for start_time, end_time in games:
+                                                                                 'end_time',
+                                                                                 'is_active')
+        for start_time, end_time, is_active in games:
             if max(start_time, cur_start) < min(start_time + timedelta(seconds=end_time), cur_end):
                 raise forms.ValidationError('当前游戏时间与其他游戏时间有冲突！')
+            if is_active:
+                raise forms.ValidationError('只能同时激活一个游戏实例！')
 
         question_num = int(self.data['gamequestion_set-TOTAL_FORMS'])
         if question_num <= 0 or int(self.data["rounds"]) != question_num:
@@ -117,7 +119,8 @@ class GameAdmin:
         obj = self.new_obj
         obj.save()
         if obj.is_active:
-            start_game.apply_async((obj.id,), eta=obj.start_time-timedelta(minutes=1))
+            update_game_status.apply_async((obj.id,), eta=obj.start_time)
+            start_game.apply_async((obj.id,), eta=obj.modify_time)
 
 
 class GameResultAdmin:
