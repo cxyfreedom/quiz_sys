@@ -118,9 +118,9 @@ class GameAdmin:
     def save_models(self):
         obj = self.new_obj
         obj.save()
-        update_game_status.apply_async((obj.id,), eta=obj.start_time)
+        start_game.apply_async((obj.id,), eta=obj.modified_time)
         if obj.is_active:
-            start_game.apply_async((obj.id,), eta=obj.modified_time)
+            update_game_status.apply_async((obj.id,), eta=obj.start_time)
 
 
 class GameResultAdmin:
