@@ -102,3 +102,4 @@ class GameResult(models.Model):
     class Meta:
         db_table = "game_result"
         verbose_name = verbose_name_plural = "游戏结果"
+        unique_together = (('openid', 'game'),)

@@ -44,6 +44,7 @@ def format_game(game):
         "remainders": 0,
         "reward": game.reward,
         "quiz": quiz,
+        "is_active": game.is_active,
     }
     print(game_info)
     return json.dumps(game_info)
