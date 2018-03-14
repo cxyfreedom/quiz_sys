@@ -75,7 +75,7 @@ def start_game(game_id):
             # 将数据存储到redis
             game_info = format_game(game)
             r.set("game", game_info)
-            r.set("gameFlag:{}".format(game.id), 0)
+            r.set("gameFlag:{}".format(game_id), 0)
         elif game.status == Game.PROCESSING:
             logger.info('游戏[{}]正在进行中'.format(game.title))
         elif game.status == Game.OVER:
@@ -83,6 +83,7 @@ def start_game(game_id):
         else:
             logger.info('游戏[{}]状态错误'.format(game.title))
     else:
+        r.set("game", "")
         logger.error('游戏[{}]未激活'.format(game.title))
 
 
@@ -94,7 +95,7 @@ def save_game_result(game_id):
     user_info = r.hvals(user_key)
     insert_data = []
 
-    if r.get(game_flag) == 0:
+    if r.get(game_flag) == 1:
         return
 
     try:
