@@ -84,7 +84,6 @@ def start_game(game_id):
         else:
             logger.info('游戏[{}]状态错误'.format(game.title))
     else:
-        r.set("game", "")
         logger.error('游戏[{}]未激活'.format(game.title))
 
 
