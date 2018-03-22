@@ -120,7 +120,7 @@ class GameAdmin:
         obj.save()
         start_game.apply_async((obj.id,), eta=obj.modified_time)
         if obj.is_active:
-            update_game_status.apply_async((obj.id,), eta=obj.start_time)
+            update_game_status.apply_async((obj.id,), eta=obj.start_time+timedelta(seconds=15))
 
 
 class GameResultAdmin:
