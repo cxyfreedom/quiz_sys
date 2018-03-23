@@ -55,6 +55,7 @@ class GameAdminForm(forms.ModelForm):
         cur_start = self.cleaned_data.get('start_time')
         cur_end = self.cleaned_data.get('start_time') + timedelta(seconds=play_time)
         reward = self.cleaned_data.get('reward')
+        cur_is_active = self.cleaned_data.get('is_active')
 
         # 校验游戏是否已经结束
         if Game.objects.filter(Q(id=cur_id) & Q(status=Game.OVER)):
@@ -84,7 +85,7 @@ class GameAdminForm(forms.ModelForm):
         for start_time, end_time, is_active in games:
             if max(start_time, cur_start) < min(start_time + timedelta(seconds=end_time), cur_end):
                 raise forms.ValidationError('当前游戏时间与其他游戏时间有冲突！')
-            if is_active:
+            if is_active and cur_is_active:
                 raise forms.ValidationError('只能同时激活一个游戏实例！')
 
         question_num = int(self.data['gamequestion_set-TOTAL_FORMS'])
