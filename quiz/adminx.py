@@ -128,11 +128,11 @@ class GameAdmin:
 
 
 class GameResultAdmin:
-    list_display = ['openid', 'nickname', 'sex', 'nums', 'join_time', 'reward', 'game']  # 设置要显示在列表中的字段
+    list_display = ['openid', 'nickname', 'name', 'sex', 'phone', 'work_num', 'nums', 'join_time', 'reward', 'game']  # 设置要显示在列表中的字段
     search_fields = ['game__title', 'openid']  # 搜索字段
     list_filter = ['game']  # 过滤器
     ordering = []  # 设置默认排序字段，负号表示降序排序
-    readonly_fields = ['openid', 'nickname', 'sex', 'nums', 'join_time', 'reward', 'game']
+    readonly_fields = ['openid', 'nickname', 'name', 'sex', 'phone', 'work_num', 'nums', 'join_time', 'reward', 'game']
 
 
 xadmin.site.register(Question, QuestionAdmin)
