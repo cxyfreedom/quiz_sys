@@ -89,7 +89,10 @@ class GameResult(models.Model):
 
     openid = models.CharField(max_length=200, verbose_name="openid")
     nickname = models.CharField(max_length=128, verbose_name="用户昵称")
+    name = models.CharField(default='', max_length=64, verbose_name="姓名")
     sex = models.IntegerField(choices=SEX_ITEMS, verbose_name="性别")
+    phone = models.CharField(default='', max_length=11, verbose_name="手机号")
+    work_num = models.CharField(default='', max_length=64, verbose_name="工号")
     # rank = models.IntegerField(verbose_name="游戏排名")
     nums = models.IntegerField(default=0, verbose_name="答对题数")
     reward = models.IntegerField(default=0, verbose_name="赏金（元）")
